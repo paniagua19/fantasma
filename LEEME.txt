@@ -1,0 +1,38 @@
+FANTASMA 👻 — Tu acortador con enlace propio
+================================================
+
+¿QUÉ ES ESTO?
+Dos archivos que, subidos a un hosting, te dan TU PROPIA PÁGINA
+del acortador Fantasma con tu propio enlace (ej. https://tudominio.com).
+
+Los enlaces se acortan DE VERDAD con abre.ai.
+
+¿CÓMO SE USA? (no necesitas saber programación)
+------------------------------------------------
+1. Sube estos 2 archivos a tu hosting, a la carpeta "public_html"
+   (o "www", según tu hosting):
+     - index.html
+     - api.php
+
+2. Abre tu dominio en el navegador. ¡Listo!
+   Ejemplos:
+     https://tudominio.com/
+     https://tudominio.com/fantasma/   (si los subiste a una carpeta "fantasma")
+
+¿CÓMO COMPRUEBO QUE QUEDÓ BIEN?
+------------------------------------------------
+Visita en el navegador:  https://tudominio.com/api.php
+Debes ver algo como:  {"ok":true,"service":"fantasma-api",...}
+Si ves eso, todo está bien instalado.
+
+¿QUÉ HACE CADA ARCHIVO?
+------------------------------------------------
+- index.html : la página que ves (diseño Matrix 👻).
+- api.php    : el que crea los enlaces reales en abre.ai desde tu
+               servidor. Sin este archivo, el botón de acortar no funciona.
+
+¿NO TIENES HOSTING?
+------------------------------------------------
+Pídele a Noor que te consiga opciones de hosting gratis o barato.
+La mayoría de los hostings baratos (con cPanel) sirven: solo subes
+los 2 archivos y listo.

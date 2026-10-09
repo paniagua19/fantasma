@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fantasma 👻 — Acortador de Enlaces</title>
+<meta name="description" content="Fantasma acorta tus enlaces uno por uno o en masa con abre.ai. Página única, sin instalación.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👻</text></svg>">
+<style>
+:root{
+  --green:#00e436; --green-dim:#00a828; --violet:#7c5cff; --violet-dark:#5a3fd4;
+  --bg:#000; --card:rgba(10,14,10,.82); --card-border:rgba(0,228,54,.22);
+  --text:#e8f5e9; --muted:#9db89f; --danger:#ff5470; --radius:14px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:"Segoe UI",system-ui,-apple-system,Roboto,sans-serif;min-height:100vh;overflow-x:hidden}
+#matrix{position:fixed;inset:0;z-index:0;opacity:.85}
+.vignette{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse at center,transparent 45%,rgba(0,0,0,.75) 100%)}
+header.hero,main,footer{position:relative;z-index:2}
+.hero{text-align:center;padding:56px 20px 26px}
+.logo{display:flex;align-items:center;justify-content:center;gap:14px}
+.logo .ghost{font-size:52px;filter:drop-shadow(0 0 18px rgba(0,228,54,.55));animation:float 3.2s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.logo h1{font-size:44px;letter-spacing:6px;margin:0;color:#fff;text-shadow:0 0 24px rgba(0,228,54,.45)}
+.subtitle{font-size:21px;color:#fff;margin:10px 0 6px;font-weight:600}
+.tagline{color:var(--muted);max-width:640px;margin:0 auto 18px;line-height:1.55}
+.pills{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.pill{border:1px solid var(--card-border);border-radius:999px;padding:7px 16px;font-size:13.5px;color:var(--text);background:rgba(0,20,8,.6);backdrop-filter:blur(4px)}
+main{max-width:1080px;margin:0 auto;padding:0 18px 40px}
+.card{background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius);padding:26px;margin:22px 0;backdrop-filter:blur(10px);box-shadow:0 12px 44px rgba(0,0,0,.55)}
+.card h2{margin:0 0 16px;font-size:20px;color:#fff}
+.card-head{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:14px}
+.card-head h2{margin:0}
+.field-label{display:block;font-weight:600;margin:6px 0 10px;color:#fff}
+.hint{color:var(--muted);font-weight:400;font-size:13px}
+textarea{width:100%;background:rgba(0,0,0,.55);color:var(--text);border:1px solid var(--card-border);border-radius:10px;padding:14px;font-size:14.5px;font-family:Consolas,monospace;resize:vertical;outline:none}
+textarea:focus{border-color:var(--green);box-shadow:0 0 0 2px rgba(0,228,54,.18)}
+.counter{text-align:right;color:var(--muted);font-size:13px;margin:6px 2px 0}
+.counter span{color:var(--green);font-weight:700}
+.qty-block{margin:18px 0 6px}
+.qty-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.qty-chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--card-border);background:rgba(0,0,0,.5);color:var(--text);border-radius:999px;padding:8px 14px;cursor:pointer;font-size:13.5px;transition:all .15s}
+.chip:hover{border-color:var(--green)}
+.chip.active{background:var(--violet);border-color:var(--violet);color:#fff;font-weight:700;box-shadow:0 0 14px rgba(124,92,255,.5)}
+.qty-custom{color:var(--muted);font-size:13.5px}
+.qty-custom input{width:90px;background:rgba(0,0,0,.55);border:1px solid var(--card-border);border-radius:8px;color:var(--text);padding:8px 10px;font-size:14px;outline:none}
+.actions-main{display:flex;gap:12px;margin:20px 0 8px;flex-wrap:wrap}
+.btn{border:none;border-radius:12px;padding:14px 26px;font-size:16px;cursor:pointer;transition:transform .12s,box-shadow .15s,opacity .15s;font-weight:700}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,var(--violet),var(--violet-dark));color:#fff;box-shadow:0 6px 26px rgba(124,92,255,.4);flex:1;min-width:220px}
+.btn-primary:hover{box-shadow:0 6px 32px rgba(124,92,255,.65)}
+.btn-primary:disabled{opacity:.55;cursor:not-allowed}
+.btn-danger{background:rgba(255,84,112,.14);color:var(--danger);border:1px solid var(--danger)}
+.btn-ghost{background:rgba(0,228,54,.07);color:var(--text);border:1px solid var(--card-border);padding:9px 15px;font-size:13.5px;border-radius:10px;font-weight:600;cursor:pointer}
+.btn-ghost:hover{border-color:var(--green);background:rgba(0,228,54,.14)}
+.export-btns{display:flex;gap:8px;flex-wrap:wrap}
+.hidden{display:none!important}
+.msg{border-radius:10px;padding:12px 16px;margin:12px 0;font-size:14px;line-height:1.5}
+.msg.error{background:rgba(255,84,112,.1);border:1px solid var(--danger);color:#ffc9d4}
+.msg.warn{background:rgba(255,193,7,.08);border:1px solid #c79a00;color:#ffe08a}
+.msg.ok{background:rgba(0,228,54,.08);border:1px solid var(--green);color:#b8f5c6}
+#progress-wrap{margin-top:16px}
+.progress-meta{display:flex;justify-content:space-between;font-size:13.5px;color:var(--muted);margin-bottom:8px}
+.progress{height:12px;background:rgba(255,255,255,.07);border-radius:999px;overflow:hidden}
+#progress-bar{height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,var(--green-dim),var(--green));box-shadow:0 0 12px rgba(0,228,54,.6);transition:width .4s ease}
+.dashboard{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin:22px 0}
+.stat{background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius);padding:18px;text-align:center;backdrop-filter:blur(10px)}
+.stat.wide{grid-column:span 2}
+.stat-num{font-size:34px;font-weight:800;color:#fff;text-shadow:0 0 16px rgba(0,228,54,.35)}
+.stat.ok .stat-num{color:var(--green)}
+.stat.err .stat-num{color:var(--danger)}
+.stat-label{color:var(--muted);font-size:13px;margin-top:6px}
+.stat-text{font-size:14px;color:var(--text);margin-top:8px;word-break:break-word}
+.table-wrap{overflow-x:auto;border-radius:10px;border:1px solid rgba(0,228,54,.14)}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:760px}
+thead th{text-align:left;padding:12px 10px;background:rgba(0,228,54,.08);color:var(--green);font-size:12.5px;text-transform:uppercase;letter-spacing:.5px}
+tbody td{padding:10px;border-top:1px solid rgba(255,255,255,.06);vertical-align:middle}
+tbody tr:hover{background:rgba(0,228,54,.04)}
+.url-cell{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:Consolas,monospace;font-size:12.5px}
+.url-cell a{color:#8fd6ff;text-decoration:none}
+.url-cell a:hover{text-decoration:underline}
+.badge{display:inline-block;padding:4px 11px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap}
+.badge.pending{background:rgba(255,255,255,.08);color:#ccc}
+.badge.processing{background:rgba(255,193,7,.14);color:#ffd54f;animation:pulse 1.2s infinite}
+.badge.completed{background:rgba(0,228,54,.14);color:var(--green)}
+.badge.error{background:rgba(255,84,112,.14);color:var(--danger)}
+@keyframes pulse{50%{opacity:.55}}
+.row-actions{display:flex;gap:6px;flex-wrap:wrap}
+.icon-btn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:var(--text);border-radius:8px;padding:6px 9px;cursor:pointer;font-size:14px}
+.icon-btn:hover{border-color:var(--green)}
+.note{color:var(--muted);font-size:13px;line-height:1.6;margin-top:14px}
+.muted{color:var(--muted)}
+.small{font-size:12.5px}
+.history-list{display:flex;flex-direction:column;gap:10px}
+.history-item{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;background:rgba(0,0,0,.4);border:1px solid rgba(0,228,54,.14);border-radius:10px;padding:12px 16px;font-size:13.5px}
+.history-item .meta{color:var(--muted)}
+.history-item b{color:#fff}
+.history-item .ok-n{color:var(--green);font-weight:700}
+.history-item .err-n{color:var(--danger);font-weight:700}
+.steps{line-height:2;padding-left:22px}
+.steps b{color:var(--green)}
+.modal{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;padding:20px}
+.modal-box{background:#0a0f0a;border:1px solid var(--green);border-radius:16px;padding:28px;text-align:center;position:relative;max-width:340px}
+.modal-close{position:absolute;top:10px;right:12px;background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer}
+#qr-box{display:flex;justify-content:center;margin:10px 0}
+#qr-box img,#qr-box canvas{background:#fff;padding:8px;border-radius:8px}
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);z-index:60;background:rgba(6,20,10,.95);border:1px solid var(--green);color:#d6ffe0;padding:13px 22px;border-radius:12px;font-size:14.5px;box-shadow:0 8px 30px rgba(0,0,0,.6);animation:toast-in .25s ease;max-width:90vw;text-align:center}
+@keyframes toast-in{from{opacity:0;transform:translate(-50%,10px)}}
+.settings{margin-top:18px;border-top:1px dashed rgba(0,228,54,.25);padding-top:14px}
+.settings summary{cursor:pointer;color:var(--muted);font-size:13.5px}
+.settings input{width:100%;margin-top:8px;background:rgba(0,0,0,.55);border:1px solid var(--card-border);border-radius:8px;color:var(--text);padding:9px 12px;font-size:13px;font-family:Consolas,monospace}
+footer{text-align:center;color:var(--muted);font-size:13px;padding:26px 16px 40px}
+@media (max-width:640px){
+  .logo h1{font-size:32px;letter-spacing:3px}
+  .logo .ghost{font-size:40px}
+  .card{padding:18px}
+  .stat.wide{grid-column:span 1}
+  .btn-primary{min-width:100%}
+}
+</style>
+</head>
+<body>
+<canvas id="matrix" aria-hidden="true"></canvas>
+<div class="vignette" aria-hidden="true"></div>
+
+<header class="hero">
+  <div class="logo"><span class="ghost">👻</span><h1>FANTASMA</h1></div>
+  <p class="subtitle">Acortador de Enlaces Inteligente</p>
+  <p class="tagline">Acorta tus URLs una por una o en masa con abre.ai. Sube <b>index.html</b> + <b>api.php</b> a tu hosting y tendrás tu propio enlace.</p>
+  <div class="pills">
+    <span class="pill">🔗 Enlaces cortos reales</span>
+    <span class="pill">📘 Compatible con Facebook</span>
+    <span class="pill">🖼️ Preview OG</span>
+    <span class="pill">◧ QR Codes</span>
+  </div>
+  <div style="margin-top:18px"><button class="btn-ghost" id="btn-clear-top">🧹 Clear — limpiar historial</button></div>
+</header>
+
+<main>
+  <section class="card" id="main-card">
+    <label class="field-label" for="urls">Pega tus enlaces <span class="hint">(uno por línea)</span></label>
+    <textarea id="urls" rows="7" placeholder="https://ejemplo.com/articulo/noticia-importante&#10;https://tusitio.com/oferta-especial&#10;…"></textarea>
+    <div class="counter"><span id="count">0</span> enlaces detectados</div>
+
+    <div class="qty-block">
+      <span class="field-label">🎯 ¿Cuántos enlaces quieres procesar?</span>
+      <div class="qty-row">
+        <div class="qty-chips" id="qty-chips"></div>
+        <label class="qty-custom">Otro: <input type="number" id="qty-custom" min="1" max="100000" placeholder="N"></label>
+      </div>
+    </div>
+
+    <div class="actions-main">
+      <button id="btn-shorten" class="btn btn-primary">✂️ Acortar enlaces</button>
+      <button id="btn-stop" class="btn btn-danger hidden">⏹ Detener</button>
+    </div>
+    <div id="validation-msg" class="msg hidden"></div>
+
+    <div id="progress-wrap" class="hidden">
+      <div class="progress-meta"><span id="progress-label">Procesando…</span><span id="progress-pct">0%</span></div>
+      <div class="progress"><div id="progress-bar"></div></div>
+    </div>
+
+    <p class="note">🔌 Esta página habla con <b>api.php</b> (en tu mismo hosting), que crea los enlaces reales en abre.ai. Sin puentes ni configuración.</p>
+  </section>
+
+  <section class="dashboard" id="dashboard">
+    <div class="stat"><div class="stat-num" id="st-total">0</div><div class="stat-label">Enlaces introducidos</div></div>
+    <div class="stat ok"><div class="stat-num" id="st-ok">0</div><div class="stat-label">Acortados correctamente</div></div>
+    <div class="stat err"><div class="stat-num" id="st-fail">0</div><div class="stat-label">Fallidos</div></div>
+    <div class="stat"><div class="stat-num" id="st-session">0</div><div class="stat-label">Procesados en la sesión</div></div>
+    <div class="stat wide"><div class="stat-label">Última operación</div><div class="stat-text" id="st-last">—</div></div>
+  </section>
+
+  <section class="card hidden" id="results-card">
+    <div class="card-head">
+      <h2>📋 Resultados</h2>
+      <div class="export-btns">
+        <button class="btn-ghost" id="btn-copy-all">📋 Copiar todos</button>
+        <button class="btn-ghost" id="btn-dl-txt">⬇ TXT</button>
+        <button class="btn-ghost" id="btn-dl-csv">⬇ CSV</button>
+        <button class="btn-ghost" id="btn-dl-xlsx">⬇ Excel</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Enlace original</th><th>Enlace corto</th><th>Estado</th><th>Acciones</th></tr></thead>
+        <tbody id="results-body"></tbody>
+      </table>
+    </div>
+    <p class="note">Solo se exportan y copian los enlaces generados correctamente. Esta página guarda el historial en tu navegador (localStorage).</p>
+  </section>
+
+  <section class="card" id="history-card">
+    <h2>🕘 Historial de operaciones</h2>
+    <div id="history-list" class="history-list"><p class="muted">Aún no hay operaciones registradas en este navegador.</p></div>
+  </section>
+
+  <section class="card" id="how">
+    <h2>⚙️ ¿Cómo funciona?</h2>
+    <ol class="steps">
+      <li><b>Sube</b> <b>index.html</b> y <b>api.php</b> a tu hosting (carpeta public_html o www).</li>
+      <li><b>Pega</b> tus enlaces, uno por línea.</li>
+      <li><b>Elige</b> cuántos vas a procesar (o escríbelo a mano). Si pegas <b>1 solo enlace</b> y eliges una cantidad mayor, se generarán esa cantidad de enlaces cortos <b>distintos</b> para el mismo destino.</li>
+      <li><b>Pulsa “Acortar enlaces”</b>: la página los valida, detecta duplicados y los crea uno por uno en abre.ai, con reintentos automáticos.</li>
+      <li><b>Sigue el progreso</b> en tiempo real. Puedes detener sin perder lo ya generado.</li>
+      <li><b>Copia, descarga o exporta</b> tus enlaces en TXT, CSV o Excel.</li>
+    </ol>
+    <p class="note">Los enlaces se crean de verdad en <b>abre.ai</b> (verás su dominio en cada enlace corto, necesario para que la redirección funcione). El archivo <b>api.php</b> es el que habla con abre.ai desde tu servidor, por eso no hacen falta puentes ni configuración. Al compartirlos en Facebook, la vista previa (imagen, título y descripción) la lee Facebook de tu página original. El historial se guarda en tu navegador.</p>
+  </section>
+</main>
+
+<footer><p>👻 <b>Fantasma</b> — Acortador de Enlaces Inteligente · Sube index.html + api.php a tu hosting</p></footer>
+
+<div id="qr-modal" class="modal hidden">
+  <div class="modal-box">
+    <button class="modal-close" id="qr-close">✕</button>
+    <h3>Código QR</h3>
+    <div id="qr-box"></div>
+    <p class="muted small" id="qr-url"></p>
+  </div>
+</div>
+<div id="toast" class="toast hidden"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script>
+/* ===== Lluvia Matrix ===== */
+(function(){
+  const canvas=document.getElementById('matrix'); if(!canvas) return;
+  const ctx=canvas.getContext('2d');
+  const CHARS='アカサタナハマヤラワガザダバパイキシチニヒミリヰギジヂビピ0123456789ABCDEFXYZ$#*+-<>';
+  const FS=16; let cols=0,drops=[];
+  function resize(){canvas.width=innerWidth;canvas.height=innerHeight;cols=Math.floor(canvas.width/FS);drops=Array.from({length:cols},()=>Math.random()*-100);}
+  const reduced=matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function draw(){ctx.fillStyle='rgba(0,0,0,0.08)';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.font=FS+'px monospace';
+    for(let i=0;i<drops.length;i++){const ch=CHARS[Math.random()*CHARS.length|0];
+      ctx.fillStyle=Math.random()>0.975?'#c8ffd8':'#00e436';
+      ctx.fillText(ch,i*FS,drops[i]*FS);
+      if(drops[i]*FS>canvas.height&&Math.random()>0.975)drops[i]=0; drops[i]++;}}
+  addEventListener('resize',resize); resize();
+  if(!reduced) setInterval(draw,50);
+})();
+
+/* ===== Fantasma página: lógica ===== */
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const els={urls:$('urls'),count:$('count'),chips:$('qty-chips'),qtyCustom:$('qty-custom'),
+  btnShorten:$('btn-shorten'),btnStop:$('btn-stop'),msg:$('validation-msg'),
+  progressWrap:$('progress-wrap'),progressBar:$('progress-bar'),progressLabel:$('progress-label'),progressPct:$('progress-pct'),
+  stTotal:$('st-total'),stOk:$('st-ok'),stFail:$('st-fail'),stSession:$('st-session'),stLast:$('st-last'),
+  resultsCard:$('results-card'),resultsBody:$('results-body'),historyList:$('history-list'),
+  toast:$('toast'),qrModal:$('qr-modal'),qrBox:$('qr-box'),qrUrl:$('qr-url')};
+
+const CONCURRENCY=4, RETRY_ATTEMPTS=2, RETRY_BASE=1200, REQ_TIMEOUT=30000;
+const LS_KEY='fantasma_history_v1';
+
+let expectedQty=null, stopRequested=false, running=false, sessionProcessed=0;
+let currentResults=[], currentOp=null, toastTimer=null;
+
+/* ---------- utilidades ---------- */
+function toast(t,ms=2600){els.toast.textContent=t;els.toast.classList.remove('hidden');clearTimeout(toastTimer);toastTimer=setTimeout(()=>els.toast.classList.add('hidden'),ms);}
+function showMsg(kind,html){els.msg.className='msg '+kind;els.msg.innerHTML=html;}
+function hideMsg(){els.msg.className='msg hidden';els.msg.innerHTML='';}
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtDate=iso=>{try{return new Date(iso).toLocaleString('es',{dateStyle:'short',timeStyle:'short'});}catch{return iso||'—';}};
+async function copyText(t){try{await navigator.clipboard.writeText(t);toast('📋 Copiado al portapapeles');}
+  catch{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');toast('📋 Copiado al portapapeles');}catch{toast('No se pudo copiar automáticamente');}ta.remove();}}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+
+/* ---------- validación (igual que la versión servidor) ---------- */
+function isPrivateIPv4(h){const m=h.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);if(!m)return false;
+  const o=m.slice(1).map(Number);if(o.some(n=>n<0||n>255))return false;const[a,b]=o;
+  return a===10||a===127||a===0||(a===172&&b>=16&&b<=31)||(a===192&&b===168)||(a===169&&b===254);}
+function blockedHost(h){h=h.toLowerCase().replace(/^\[|\]$/g,'');
+  if(h==='localhost'||h==='::1'||h==='0.0.0.0')return true;if(isPrivateIPv4(h))return true;
+  if(h.startsWith('fc')||h.startsWith('fd'))return true;
+  return ['.local','.internal','.localhost'].some(s=>h.endsWith(s));}
+function normalizeInput(raw){let s=String(raw||'').trim();if(!s)return s;
+  if(!/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(s))s='https://'+s;return s;}
+function validateUrl(raw){const input=normalizeInput(raw);
+  if(!input)return{ok:false,error:'Línea vacía'};
+  if(input.length>2048)return{ok:false,error:'URL demasiado larga'};
+  let u;try{u=new URL(input);}catch{return{ok:false,error:'URL no válida'};}
+  if(u.protocol!=='http:'&&u.protocol!=='https:')return{ok:false,error:'Esquema no permitido ('+u.protocol.replace(':','')+')'};
+  if(!u.hostname)return{ok:false,error:'Falta el dominio'};
+  if(blockedHost(u.hostname))return{ok:false,error:'Destino interno o privado no permitido'};
+  const hn=u.hostname.toLowerCase(),isV4=/^\d{1,3}(\.\d{1,3}){3}$/.test(hn),isV6=hn.includes(':');
+  if(!isV4&&!isV6&&!hn.includes('.'))return{ok:false,error:'Dominio no válido'};
+  return{ok:true,url:u.toString()};}
+function validateBatch(lines){const valid=[],invalid=[],duplicates=[],seen=new Map();
+  lines.forEach((raw,i)=>{const n=i+1,text=String(raw||'').trim();if(!text)return;
+    const v=validateUrl(text);
+    if(!v.ok){invalid.push({line:text.slice(0,120),index:n,reason:v.error});return;}
+    if(seen.has(v.url)){duplicates.push({line:v.url.slice(0,120),index:n,firstIndex:seen.get(v.url)});return;}
+    seen.set(v.url,valid.length+1);valid.push({url:v.url,line:n});});
+  return{valid,invalid,duplicates};}
+
+/* ---------- proveedor abre.ai vía puente ---------- */
+class ProviderError extends Error{constructor(m,o={}){super(m);this.retryable=!!o.retryable;}}
+/* Llamada al backend propio (api.php en el mismo hosting).
+   api.php crea el enlace real en abre.ai desde el servidor. */
+async function shortenReal(longUrl){
+  const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),REQ_TIMEOUT);
+  try{
+    const res=await fetch('api.php',{method:'POST',signal:ctl.signal,
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({url:longUrl})});
+    let data=null;try{data=await res.json();}catch{}
+    if(!res.ok||!data||data.ok!==true)
+      throw new Error((data&&data.error)||('HTTP '+res.status));
+    const short=String(data.short||'').trim();
+    let host='';try{host=new URL(short).hostname.toLowerCase();}catch{throw new Error('enlace inválido');}
+    if(!host.endsWith('abre.ai'))throw new Error('dominio inesperado: '+host);
+    return short;
+  }catch(e){
+    if(e&&e.name==='AbortError')throw new ProviderError('tiempo de espera agotado',{retryable:true});
+    throw new ProviderError(e.message||'error de red',{retryable:true});
+  }finally{clearTimeout(t);}
+}
+async function shortenWithRetry(longUrl){
+  let last='Error desconocido';
+  for(let a=1;a<=RETRY_ATTEMPTS;a++){
+    try{return{ok:true,short:await shortenReal(longUrl)};}
+    catch(e){last=e.message||String(e);
+      if(!e.retryable||a===RETRY_ATTEMPTS)break;
+      await sleep(Math.min(RETRY_BASE*Math.pow(2,a-1),15000)+Math.random()*400);}
+  }
+  return{ok:false,error:last};
+}
+
+/* ---------- procesamiento masivo ---------- */
+function updateProgress(done,total,ok,failed,status){
+  const pct=total?Math.round(done/total*100):0;
+  els.progressBar.style.width=pct+'%';els.progressPct.textContent=pct+'%';
+  els.progressLabel.textContent=
+    status==='done'?`✅ Completado: ${ok} ok · ${failed} fallidos`:
+    status==='stopped'?`⏹ Detenido: ${ok} ok · ${failed} fallidos (${done}/${total})`:
+    (runLabelOverride?runLabelOverride+' ':`Procesando… `)+`${done}/${total} · ✅ ${ok} · ❌ ${failed}`;
+  els.stTotal.textContent=total;els.stOk.textContent=ok;els.stFail.textContent=failed;
+}
+const STATUS_LABEL={pending:'Pendiente',processing:'Procesando',completed:'Completado',error:'Error'};
+
+function renderResults(){
+  els.resultsBody.innerHTML=currentResults.map((r,i)=>{
+    const short=r.short?`<a href="${esc(r.short)}" target="_blank" rel="noopener">${esc(r.short)}</a>`:'<span class="muted">—</span>';
+    const tip=r.status==='error'&&r.error?` title="${esc(r.error)}"`:'';
+    return `<tr data-i="${i}">
+      <td>${i+1}</td>
+      <td class="url-cell"><a href="${esc(r.original)}" target="_blank" rel="noopener">${esc(r.original)}</a></td>
+      <td class="url-cell">${short}</td>
+      <td><span class="badge ${r.status}"${tip}>${STATUS_LABEL[r.status]}</span></td>
+      <td><div class="row-actions">
+        ${r.short?`<button class="icon-btn" data-act="copy" title="Copiar enlace corto">📋</button>`:''}
+        <button class="icon-btn" data-act="open-orig" title="Abrir original">↗️</button>
+        ${r.short?`<button class="icon-btn" data-act="open-short" title="Abrir corto">👻</button>`:''}
+        ${r.short?`<button class="icon-btn" data-act="qr" title="Ver QR">◧</button>`:''}
+        ${r.status==='error'?`<button class="icon-btn" data-act="retry" title="Reintentar">🔄</button>`:''}
+        <button class="icon-btn" data-act="del" title="Eliminar">🗑️</button>
+      </div></td></tr>`;
+  }).join('');
+}
+
+let runLabelOverride='';
+async function runJob(urls,opts={}){
+  running=true;stopRequested=false;runLabelOverride=opts.repeatLabel||'';
+  currentResults=urls.map(u=>({original:u.url,status:'pending',short:null,error:null,created_at:new Date().toISOString()}));
+  currentOp={id:'op-'+Date.now(),created_at:new Date().toISOString(),total:urls.length,completed:0,failed:0,status:'running',repeat:!!opts.repeat,results:currentResults};
+  els.progressWrap.classList.remove('hidden');els.btnStop.classList.remove('hidden');
+  els.resultsCard.classList.remove('hidden');els.btnShorten.disabled=true;hideMsg();
+  renderResults();
+  let done=0,ok=0,failed=0,idx=0;
+  updateProgress(0,urls.length,0,0,'running');
+  const workers=Array.from({length:Math.min(CONCURRENCY,urls.length)},async()=>{
+    while(!stopRequested&&idx<urls.length){
+      const my=idx++;const r=currentResults[my];r.status='processing';renderResults();
+      const out=await shortenWithRetry(r.original);
+      if(stopRequested)break;
+      if(out.ok){r.status='completed';r.short=out.short;ok++;}
+      else{r.status='error';r.error=out.error;failed++;}
+      done++;updateProgress(done,urls.length,ok,failed,'running');renderResults();
+    }
+  });
+  await Promise.all(workers);
+  currentOp.completed=ok;currentOp.failed=failed;
+  currentOp.status=stopRequested?'stopped':'done';
+  updateProgress(done,urls.length,ok,failed,currentOp.status);
+  els.btnStop.classList.add('hidden');els.btnShorten.disabled=false;running=false;
+  sessionProcessed+=done;els.stSession.textContent=sessionProcessed;
+  els.stLast.textContent=`${fmtDate(currentOp.created_at)} — ${urls.length} enlaces (${currentOp.status==='done'?'completada':'detenida'})${currentOp.repeat?' · repetición':''}`;
+  saveHistory();
+  toast(currentOp.status==='done'?`✅ Listo: ${ok} enlaces acortados${failed?`, ${failed} fallaron`:''}`:`⏹ Detenido con ${ok} enlaces generados`);
+}
+
+/* ---------- historial (localStorage) ---------- */
+function getHistory(){try{return JSON.parse(localStorage.getItem(LS_KEY)||'[]');}catch{return[];}}
+function saveHistory(){
+  try{
+    const h=getHistory();
+    h.unshift({id:currentOp.id,created_at:currentOp.created_at,total:currentOp.total,
+      completed:currentOp.completed,failed:currentOp.failed,status:currentOp.status,
+      results:currentResults.map(r=>({original:r.original,short:r.short,status:r.status,error:r.error,created_at:r.created_at}))});
+    localStorage.setItem(LS_KEY,JSON.stringify(h.slice(0,30)));
+  }catch{toast('⚠️ No se pudo guardar el historial (almacenamiento lleno)');}
+  loadHistory();
+}
+function loadHistory(){
+  const h=getHistory();
+  if(!h.length){els.historyList.innerHTML='<p class="muted">Aún no hay operaciones registradas en este navegador.</p>';return;}
+  els.historyList.innerHTML=h.map(op=>`
+    <div class="history-item" data-id="${esc(op.id)}">
+      <div><b>${fmtDate(op.created_at)}</b><span class="meta"> · ${op.total} enlaces · </span>
+      <span class="ok-n">${op.completed} ok</span><span class="meta"> · </span>
+      <span class="err-n">${op.failed} fallidos</span><span class="meta"> · ${esc(op.status)}</span></div>
+      <div class="row-actions">
+        <button class="btn-ghost" data-hact="view">👁 Ver</button>
+        <button class="btn-ghost" data-hact="csv">⬇ CSV</button>
+        <button class="btn-ghost" data-hact="xlsx">⬇ Excel</button>
+      </div></div>`).join('');
+}
+function historyOp(id){return getHistory().find(o=>o.id===id);}
+
+/* ---------- exportación ---------- */
+function downloadBlob(content,mime,filename){
+  const blob=content instanceof Blob?content:new Blob([content],{type:mime});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;
+  document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},800);
+}
+const okShorts=()=>currentResults.filter(r=>r.status==='completed'&&r.short);
+function exportTXT(){const rows=okShorts();if(!rows.length)return toast('No hay enlaces correctos para exportar');
+  downloadBlob(rows.map(r=>r.short).join('\n')+'\n','text/plain','fantasma-enlaces.txt');toast('⬇ TXT descargado');}
+function exportCSV(){const rows=okShorts();if(!rows.length)return toast('No hay enlaces correctos para exportar');
+  const q=v=>`"${String(v??'').replace(/"/g,'""')}"`;
+  const csv='﻿original,short,status,fecha\n'+rows.map(r=>[r.original,r.short,r.status,r.created_at].map(q).join(',')).join('\n');
+  downloadBlob(csv,'text/csv','fantasma-enlaces.csv');toast('⬇ CSV descargado');}
+function exportXLSX(){
+  const rows=okShorts();if(!rows.length)return toast('No hay enlaces correctos para exportar');
+  if(typeof XLSX==='undefined')return toast('Excel no disponible sin internet: usa CSV');
+  const ws=XLSX.utils.json_to_sheet(rows.map((r,i)=>({'Nº':i+1,'Enlace original':r.original,'Enlace corto':r.short,'Estado':r.status,'Fecha':r.created_at})));
+  ws['!cols']=[{wch:6},{wch:60},{wch:32},{wch:12},{wch:22}];
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Enlaces');
+  const errs=currentResults.filter(r=>r.status==='error');
+  if(errs.length){const we=XLSX.utils.json_to_sheet(errs.map((r,i)=>({'Nº':i+1,'Enlace original':r.original,'Error':r.error||'','Fecha':r.created_at})));
+    we['!cols']=[{wch:6},{wch:60},{wch:60},{wch:22}];XLSX.utils.book_append_sheet(wb,we,'Errores');}
+  XLSX.writeFile(wb,'fantasma-enlaces.xlsx');toast('⬇ Excel descargado');}
+function exportHistoryCSV(op){
+  const q=v=>`"${String(v??'').replace(/"/g,'""')}"`;
+  const csv='﻿original,short,status,error,fecha\n'+op.results.map(r=>[r.original,r.short||'',r.status,r.error||'',r.created_at].map(q).join(',')).join('\n');
+  downloadBlob(csv,'text/csv','fantasma-'+op.id+'.csv');}
+function exportHistoryXLSX(op){
+  if(typeof XLSX==='undefined')return toast('Excel no disponible sin internet: usa CSV');
+  const ws=XLSX.utils.json_to_sheet(op.results.map((r,i)=>({'Nº':i+1,'Enlace original':r.original,'Enlace corto':r.short||'','Estado':r.status,'Error':r.error||'','Fecha':r.created_at})));
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Enlaces');
+  XLSX.writeFile(wb,'fantasma-'+op.id+'.xlsx');}
+
+/* ---------- eventos ---------- */
+const QTY=[100,200,300,400,500,600,700,800,900,1000,1500,2000];
+QTY.forEach(n=>{const b=document.createElement('button');b.type='button';b.className='chip';
+  b.textContent=n.toLocaleString('es');b.dataset.qty=n;
+  b.onclick=()=>{els.chips.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+    b.classList.add('active');els.qtyCustom.value='';expectedQty=n;};
+  els.chips.appendChild(b);});
+els.qtyCustom.addEventListener('input',()=>{const v=parseInt(els.qtyCustom.value,10);
+  els.chips.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  expectedQty=Number.isFinite(v)&&v>0?v:null;});
+els.urls.addEventListener('input',()=>{
+  els.count.textContent=els.urls.value.split(/\r?\n/).map(l=>l.trim()).filter(Boolean).length;});
+
+els.btnShorten.onclick=async()=>{
+  if(running)return;
+  const text=els.urls.value;
+  if(!text.trim()){showMsg('error','Pega al menos un enlace para comenzar.');return;}
+  const{valid,invalid,duplicates}=validateBatch(text.split(/\r?\n/));
+  if(!valid.length){let h='<b>⚠️ No se encontró ningún enlace válido.</b>';
+    if(invalid.length)h+='<br><br>'+invalid.slice(0,8).map(x=>`• Línea ${x.index}: <code>${esc(x.line)}</code> — ${esc(x.reason)}`).join('<br>');
+    showMsg('error',h);return;}
+  /* Modo repetición: 1 enlace + cantidad > 1 → N enlaces cortos distintos al mismo destino */
+  if(valid.length===1&&expectedQty!=null&&expectedQty>1){
+    const n=expectedQty;
+    if(n>100&&!confirm(`Se generarán ${n} enlaces cortos distintos para el mismo destino. Puede tardar varios minutos. ¿Continuar?`))return;
+    hideMsg();
+    runJob(Array.from({length:n},()=>valid[0]),{repeat:true,repeatLabel:`Generando ${n} enlaces cortos para el mismo destino…`});
+    return;
+  }
+  if(expectedQty!=null&&expectedQty!==valid.length){
+    showMsg('error',`<b>⚠️ Seleccionaste ${expectedQty} enlaces pero se detectaron ${valid.length} válidos.</b> Revisa el texto pegado o ajusta la cantidad.`);return;}
+  if(invalid.length||duplicates.length)
+    showMsg('warn',`Se excluyeron ${invalid.length} línea(s) inválida(s) y ${duplicates.length} duplicada(s). Procesando ${valid.length} enlaces…`);
+  else hideMsg();
+  runJob(valid);
+};
+els.btnStop.onclick=()=>{stopRequested=true;toast('⏹ Deteniendo… se conservan los resultados generados');};
+
+els.resultsBody.addEventListener('click',async e=>{
+  const btn=e.target.closest('[data-act]');if(!btn)return;
+  const tr=btn.closest('tr');const r=currentResults[+tr.dataset.i];if(!r)return;
+  switch(btn.dataset.act){
+    case'copy':if(r.short)copyText(r.short);break;
+    case'open-orig':open(r.original,'_blank','noopener');break;
+    case'open-short':if(r.short)open(r.short,'_blank','noopener');break;
+    case'qr':
+      els.qrBox.innerHTML='';els.qrUrl.textContent=r.short||'';
+      if(typeof QRCode!=='undefined')new QRCode(els.qrBox,{text:r.short,width:200,height:200});
+      else els.qrBox.innerHTML='<p class="muted">QR no disponible sin internet</p>';
+      els.qrModal.classList.remove('hidden');break;
+    case'retry':
+      btn.disabled=true;r.status='processing';r.error=null;renderResults();
+      const out=await shortenWithRetry(r.original);
+      if(out.ok){r.status='completed';r.short=out.short;toast('✅ Reintento exitoso');}
+      else{r.status='error';r.error=out.error;toast('❌ Sigue fallando');}
+      renderResults();break;
+    case'del':
+      if(!confirm('¿Eliminar este resultado de la lista?'))break;
+      currentResults.splice(+tr.dataset.i,1);renderResults();toast('🗑️ Resultado eliminado');break;
+  }
+});
+$('qr-close').onclick=()=>els.qrModal.classList.add('hidden');
+els.qrModal.addEventListener('click',e=>{if(e.target===els.qrModal)els.qrModal.classList.add('hidden');});
+
+$('btn-copy-all').onclick=()=>{const rows=okShorts();
+  if(!rows.length)return toast('Aún no hay enlaces correctos para copiar');
+  copyText(rows.map(r=>r.short).join('\n'));};
+$('btn-clear-top').onclick=()=>{
+  if(running)return toast('⏳ Espera a que termine la operación actual');
+  if(!confirm('¿Borrar todo el historial de enlaces acortados? Esta acción no se puede deshacer.'))return;
+  try{localStorage.removeItem(LS_KEY);}catch{}
+  currentResults=[];currentOp=null;sessionProcessed=0;runLabelOverride='';
+  renderResults();els.resultsCard.classList.add('hidden');els.progressWrap.classList.add('hidden');hideMsg();
+  els.stTotal.textContent='0';els.stOk.textContent='0';els.stFail.textContent='0';els.stSession.textContent='0';els.stLast.textContent='—';
+  loadHistory();toast('🧹 Historial limpio');
+};
+$('btn-dl-txt').onclick=exportTXT;$('btn-dl-csv').onclick=exportCSV;$('btn-dl-xlsx').onclick=exportXLSX;
+
+els.historyList.addEventListener('click',e=>{
+  const btn=e.target.closest('[data-hact]');if(!btn)return;
+  const op=historyOp(btn.closest('.history-item').dataset.id);if(!op)return;
+  if(btn.dataset.hact==='csv')return exportHistoryCSV(op);
+  if(btn.dataset.hact==='xlsx')return exportHistoryXLSX(op);
+  currentResults=op.results.map(r=>({...r}));currentOp=op;
+  els.resultsCard.classList.remove('hidden');els.progressWrap.classList.add('hidden');
+  els.stTotal.textContent=op.total;els.stOk.textContent=op.completed;els.stFail.textContent=op.failed;
+  els.stLast.textContent=`${fmtDate(op.created_at)} — ${op.total} enlaces (${op.status})`;
+  renderResults();els.resultsCard.scrollIntoView({behavior:'smooth'});
+});
+
+loadHistory();
+})();
+</script>
+</body>
+</html>
